@@ -1,0 +1,2 @@
+st = "helo"
+print(st)
