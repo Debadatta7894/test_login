@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Automation Practice – Full Page</title>
+
+<style>
+body { font-family: Arial; padding: 20px; }
+section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+
+.menu { display: none; background: #eee; padding: 10px; position: absolute; }
+.hover-box:hover .menu { display: block; }
+
+#drag { width: 100px; height: 100px; background: skyblue; cursor: grab; }
+#drop { width: 150px; height: 150px; border: 2px dashed black; margin-top: 10px; }
+
+iframe { width: 100%; height: 120px; border: 1px solid black; }
+
+.context-menu {
+    display:none;
+    position:absolute;
+    background:#ddd;
+    padding:10px;
+    border:1px solid #333;
+    z-index:1000;
+}
+
+#rightClickBox {
+    width: 200px;
+    height: 80px;
+    background: #f4f4f4;
+    border: 2px dashed #333;
+    text-align: center;
+    line-height: 80px;
+    cursor: context-menu;
+}
+
+/* ===== Calendar Styles ===== */
+.calendar { display: flex; gap: 30px; }
+.month { border: 1px solid #ccc; padding: 10px; }
+.days { display: grid; grid-template-columns: repeat(7, 30px); gap: 5px; }
+.day { text-align: center; cursor: pointer; padding: 5px; }
+.day:hover { background: #e0f0ff; }
+.selected { background: #1a73e8; color: white; }
+</style>
+
+<script>
+/* ===== Window & Alerts ===== */
+function openNewTab() { window.open("about:blank","_blank"); }
+function openNewWindow() { window.open("about:blank","newWindow","width=400,height=300"); }
+
+/* ===== Alerts with Result ===== */
+function showAlert() {
+    alert("Simple Alert");
+    document.getElementById("result").innerText = "Alert OK clicked ✅";
+}
+
+function showConfirm() {
+    let userResponse = confirm("Are you sure?");
+    if(userResponse) {
+        document.getElementById("result").innerText = "Confirm Alert: OK clicked ✅";
+    } else {
+        document.getElementById("result").innerText = "Confirm Alert: Cancel clicked ❌";
+    }
+}
+
+function showPrompt() {
+    let userInput = prompt("Enter something");
+    if(userInput !== null) {
+        document.getElementById("result").innerText = "Prompt Alert: Value entered → " + userInput;
+    } else {
+        document.getElementById("result").innerText = "Prompt Alert: Cancel clicked ❌";
+    }
+}
+
+/* ===== Drag & Drop ===== */
+function allowDrop(ev){ ev.preventDefault(); }
+function drag(ev){ ev.dataTransfer.setData("text", ev.target.id); }
+function drop(ev){
+    ev.preventDefault();
+    let data = ev.dataTransfer.getData("text");
+    ev.target.appendChild(document.getElementById(data));
+}
+
+/* ===== Right Click ONLY FOR BOX ===== */
+function showContextMenu(e) {
+    e.preventDefault();
+    let menu = document.getElementById("contextMenu");
+    menu.style.display = "block";
+    menu.style.left = e.pageX + "px";
+    menu.style.top = e.pageY + "px";
+}
+
+document.addEventListener("click", function(){
+    document.getElementById("contextMenu").style.display = "none";
+});
+
+/* ===== Calendar ===== */
+let selectedDates = [];
+function selectDate(el) {
+    if (selectedDates.length === 2) {
+        selectedDates = [];
+        document.querySelectorAll('.day').forEach(d => d.classList.remove('selected'));
+    }
+    el.classList.add("selected");
+    selectedDates.push(el.innerText);
+    document.getElementById("travelResult").innerText =
+        "Travel Dates Selected: " + selectedDates.join(" → ");
+}
+
+/* ===== Submit ===== */
+function submitForm(){
+    document.getElementById("result").innerText =
+        "✅ All OK & Submitted Successfully";
+}
+</script>
+</head>
+
+<body>
+
+<h2>Automation Practice Form (Complete)</h2>
+
+<section>
+<label>Name:</label>
+<input type="text" id="name" placeholder="Enter your name">
+</section>
+
+<section>
+Gender:
+<input type="radio" name="gender" id="male" value="Male"> Male
+<input type="radio" name="gender" id="female" value="Female"> Female
+</section>
+
+<section>
+Skills:
+<input type="checkbox"> Java
+<input type="checkbox"> Python
+<input type="checkbox"> QA
+</section>
+
+<section>
+<label for="country">Country:</label>
+<select id="country" name="country">
+    <option value="">--Select Country--</option>
+    <option value="IN">India</option>
+    <option value="US">USA</option>
+    <option value="UK">UK</option>
+</select>
+</section>
+
+<section>
+<label for="country_suggest">Type Country (Auto-Suggest):</label>
+<input type="text" id="country_suggest" placeholder="Type a country">
+<ul id="suggestions" style="
+    border:1px solid #ccc;
+    display:none;
+    list-style:none;
+    padding:0;
+    margin:0;
+    position:absolute;
+    background:white;
+    width:200px;
+    max-height:100px;
+    overflow:auto;">
+</ul>
+</section>
+
+<script>
+const countryList = ["India", "USA", "UK", "Australia", "Austria", "Germany", "France"];
+const inputSuggest = document.getElementById("country_suggest");
+const suggestionBox = document.getElementById("suggestions");
+
+inputSuggest.addEventListener("input", () => {
+    const value = inputSuggest.value.toLowerCase();
+    suggestionBox.innerHTML = "";
+    if(value.length >= 2){
+        const matches = countryList.filter(c => c.toLowerCase().includes(value));
+        matches.forEach(c => {
+            const li = document.createElement("li");
+            li.textContent = c;
+            li.style.padding = "5px";
+            li.style.cursor = "pointer";
+            li.addEventListener("click", () => {
+                inputSuggest.value = c;
+                suggestionBox.style.display = "none";
+            });
+            suggestionBox.appendChild(li);
+        });
+        suggestionBox.style.display = matches.length ? "block" : "none";
+    } else {
+        suggestionBox.style.display = "none";
+    }
+});
+
+document.addEventListener("click", (e) => {
+    if(e.target !== inputSuggest){
+        suggestionBox.style.display = "none";
+    }
+});
+</script>
+
+<section>
+<h3>Date of Birth</h3>
+<input type="date" id="dob">
+</section>
+
+
+<section>
+<h3>Travel Date (MakeMyTrip Style)</h3>
+<div class="calendar">
+<div class="month">
+<h4>March 2026</h4>
+<div class="days">
+<div class="day" onclick="selectDate(this)">1</div>
+<div class="day" onclick="selectDate(this)">2</div>
+<div class="day" onclick="selectDate(this)">3</div>
+<div class="day" onclick="selectDate(this)">4</div>
+<div class="day" onclick="selectDate(this)">5</div>
+<div class="day" onclick="selectDate(this)">6</div>
+<div class="day" onclick="selectDate(this)">7</div>
+</div>
+</div>
+
+<div class="month">
+<h4>April 2026</h4>
+<div class="days">
+<div class="day" onclick="selectDate(this)">1</div>
+<div class="day" onclick="selectDate(this)">2</div>
+<div class="day" onclick="selectDate(this)">3</div>
+<div class="day" onclick="selectDate(this)">4</div>
+<div class="day" onclick="selectDate(this)">5</div>
+<div class="day" onclick="selectDate(this)">6</div>
+<div class="day" onclick="selectDate(this)">7</div>
+</div>
+</div>
+</div>
+<p id="travelResult"></p>
+</section>
+
+<section>
+  <label for="fileUpload">File Upload:</label>
+  <input type="file" id="fileUpload" name="fileUpload">
+  <br><br>
+
+  <button type="button" onclick="uploadFile()">Upload</button>
+
+  <p id="output" style="margin-top:10px;"></p>
+  <a id="downloadLink" style="display:none; margin-top:10px;" download>
+    Download File
+  </a>
+</section>
+
+<script>
+  function uploadFile() {
+    const fileInput = document.getElementById("fileUpload");
+    const output = document.getElementById("output");
+    const downloadLink = document.getElementById("downloadLink");
+
+    if (fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+
+      output.textContent = "File uploaded: " + file.name;
+      output.style.color = "green";
+
+      // Create download link
+      const fileURL = URL.createObjectURL(file);
+      downloadLink.href = fileURL;
+      downloadLink.style.display = "block";
+      downloadLink.textContent = "Download " + file.name;
+    } else {
+      output.textContent = "Please select a file before uploading.";
+      output.style.color = "red";
+      downloadLink.style.display = "none";
+    }
+  }
+</script>
+
+
+
+
+<section>
+  <button onclick="openNewTab()">Open New Tab</button>
+  <button onclick="openNewWindow()">Open New Window</button>
+</section>
+
+<script>
+  // Function to open a new tab
+  function openNewTab() {
+    const newTab = window.open("", "_blank"); // Open blank tab
+    newTab.document.write(`
+      <h2>New Tab</h2>
+      <p>This is inside the new tab.</p>
+      <button onclick="alert('Button in New Tab clicked!')">Click Me</button>
+      <input id="tabInput" placeholder="Type something here">
+    `);
+    newTab.document.close();
+  }
+
+  // Function to open a new window
+  function openNewWindow() {
+    const newWin = window.open("", "newWindow", "width=400,height=300");
+    newWin.document.write(`
+      <h2>New Window</h2>
+      <p>This is inside the new window.</p>
+      <button onclick="alert('Button in New Window clicked!')">Click Me</button>
+      <input id="winInput" placeholder="Type something here">
+    `);
+    newWin.document.close();
+  }
+</script>
+
+
+<section>
+<button onclick="showAlert()">Alert</button>
+<button onclick="showConfirm()">Confirm</button>
+<button onclick="showPrompt()">Prompt</button>
+</section>
+
+<section class="hover-box">
+Hover Me
+<div class="menu">
+<button>Option 1</button>
+<button>Option 2</button>
+</div>
+</section>
+
+<section>
+<button ondblclick="alert('Double Clicked')">Double Click Me</button>
+</section>
+
+<section>
+<div id="drag" draggable="true" ondragstart="drag(event)">Drag</div>
+<div id="drop" ondrop="drop(event)" ondragover="allowDrop(event)">Drop Here</div>
+</section>
+
+<section>
+<h3>Right Click Area</h3>
+<div id="rightClickBox" oncontextmenu="showContextMenu(event)">
+Right Click Here
+</div>
+</section>
+
+<section>
+  <iframe id="frame1" srcdoc='<button id="btn1" onclick="document.body.style.background=lightgreen">Click Inside Frame</button>'></iframe>
+</section>
+
+
+
+<section>
+  <input id="keyboardField1" placeholder="Keyboard Field 1">
+  <input id="keyboardField2" placeholder="Keyboard Field 2">
+</section>
+
+
+
+
+<section>
+<button onclick="submitForm()">Submit</button>
+<h3 id="result"></h3>
+</section>
+
+<div id="contextMenu" class="context-menu">
+<p>Context Menu</p>
+<button onclick="alert('Edit Clicked')">Edit</button><br>
+<button onclick="alert('Delete Clicked')">Delete</button>
+</div>
+
+</body>
+</html>

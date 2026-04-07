@@ -29,6 +29,7 @@ driver.find_element(By.XPATH,"//button[text()='Click for JS Prompt']").click()
 alert=wait.until(EC.alert_is_present())
 print(alert.text)
 alert.send_keys('Python automation')
+time.sleep(4)
 alert.accept()
 
 
